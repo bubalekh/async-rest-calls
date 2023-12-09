@@ -21,6 +21,7 @@ public class Aggregator {
     private final ApiService secondService;
     private final ApiService thirdService;
 
+    @SuppressWarnings("rawtypes")
     private final List<CompletableFuture> integrations = new ArrayList<>();
 
     public List<String> aggregateData() {
