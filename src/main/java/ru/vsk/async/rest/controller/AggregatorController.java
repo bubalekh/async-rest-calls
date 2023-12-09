@@ -6,23 +6,34 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import ru.vsk.async.rest.service.aggregator.Aggregator;
+import ru.vsk.async.rest.service.aggregator.AggregatorService;
+import ru.vsk.async.rest.service.aggregator.AsyncAggregatorServiceImpl;
 
 import java.util.List;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/v1")
+@RequestMapping("/api/v1/aggregate")
 @RequiredArgsConstructor
 public class AggregatorController {
 
-    private final Aggregator aggregator;
+    private final AggregatorService asyncAggregatorServiceImpl;
+    private final AggregatorService syncAggregatorServiceImpl;
 
-    @GetMapping("/aggregate")
-    public ResponseEntity<List<String>> getDataFromAllServices() {
+    @GetMapping("/async")
+    public ResponseEntity<List<String>> getDataAsync() {
+        return ResponseEntity.ok(invokeGetData(asyncAggregatorServiceImpl));
+    }
+
+    @GetMapping("/sync")
+    public ResponseEntity<List<String>> getDataSync() {
+        return ResponseEntity.ok(invokeGetData(syncAggregatorServiceImpl));
+    }
+
+    private List<String> invokeGetData(AggregatorService aggregatorService) {
         long startTime = System.currentTimeMillis();
-        List<String> result = aggregator.aggregateData();
+        List<String> result = aggregatorService.aggregateData();
         log.info("{} milliseconds has passed", System.currentTimeMillis() - startTime);
-        return ResponseEntity.ok(result);
+        return result;
     }
 }

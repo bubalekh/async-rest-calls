@@ -15,7 +15,7 @@ import java.util.function.Supplier;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class Aggregator {
+public class AsyncAggregatorServiceImpl implements AggregatorService {
 
     private final ApiService firstService;
     private final ApiService secondService;
@@ -24,12 +24,13 @@ public class Aggregator {
     @SuppressWarnings("rawtypes")
     private final List<CompletableFuture> integrations = new ArrayList<>();
 
+    @Override
     public List<String> aggregateData() {
       
         List<String> result = new ArrayList<>();
 
         asyncCallIntegration(firstService::getData, result::add, 3, () -> log.error("First service didn't respond in time"));
-        asyncCallIntegration(secondService::getData, result::add, 3, () -> log.error("Second service didn't respond in time"));
+        asyncCallIntegration(secondService::getData, result::add, 6, () -> log.error("Second service didn't respond in time"));
         asyncCallIntegration(thirdService::getData, result::add, 6, () -> log.error("Third service didn't respond in time"));
 
         integrations.forEach(CompletableFuture::join);
@@ -44,7 +45,7 @@ public class Aggregator {
                 .completeOnTimeout(null, timeout, TimeUnit.SECONDS)
                 .whenComplete((data, ex) -> {
                     if (ex != null) {
-                        log.error("Exception occurred while async service call: {}", ex.getMessage());
+                        log.error("Exception occurred while async service call. Error: {}", ex.getMessage());
                     }
                     if (data != null)
                         resultList.accept(data);
