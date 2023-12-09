@@ -6,6 +6,8 @@ import org.springframework.stereotype.Service;
 import ru.vsk.async.rest.service.ApiService;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -22,7 +24,7 @@ public class AsyncAggregatorServiceImpl implements AggregatorService {
     private final ApiService thirdService;
 
     @SuppressWarnings("rawtypes")
-    private final List<CompletableFuture> integrations = new ArrayList<>();
+    private final List<CompletableFuture> integrations = new LinkedList<>();
 
     @Override
     public List<String> aggregateData() {
@@ -30,10 +32,11 @@ public class AsyncAggregatorServiceImpl implements AggregatorService {
         List<String> result = new ArrayList<>();
 
         asyncCallIntegration(firstService::getData, result::add, 3, () -> log.error("First service didn't respond in time"));
-        asyncCallIntegration(secondService::getData, result::add, 6, () -> log.error("Second service didn't respond in time"));
+        asyncCallIntegration(secondService::getData, result::add, 3, () -> log.error("Second service didn't respond in time"));
         asyncCallIntegration(thirdService::getData, result::add, 6, () -> log.error("Third service didn't respond in time"));
 
         integrations.forEach(CompletableFuture::join);
+        integrations.clear();
 
         return result;
     }
@@ -47,10 +50,12 @@ public class AsyncAggregatorServiceImpl implements AggregatorService {
                     if (ex != null) {
                         log.error("Exception occurred while async service call. Error: {}", ex.getMessage());
                     }
-                    if (data != null)
+                    if (data != null) {
                         resultList.accept(data);
-                    else
+                    }
+                    else {
                         timeoutCallback.run();
+                    }
                 });
     }
 }

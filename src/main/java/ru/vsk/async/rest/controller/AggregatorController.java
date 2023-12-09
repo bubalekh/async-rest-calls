@@ -31,9 +31,9 @@ public class AggregatorController {
     }
 
     private List<String> invokeGetData(AggregatorService aggregatorService) {
-        long startTime = System.currentTimeMillis();
+        long startTime = System.nanoTime();
         List<String> result = aggregatorService.aggregateData();
-        log.info("{} milliseconds has passed", System.currentTimeMillis() - startTime);
+        log.info("{} milliseconds has passed", System.nanoTime() - startTime);
         return result;
     }
 }
