@@ -22,7 +22,7 @@ public class AggregatorController {
     public ResponseEntity<List<String>> getDataFromAllServices() {
         long startTime = System.currentTimeMillis();
         List<String> result = aggregator.aggregateData();
-        log.info("{} milliseconds passed", System.currentTimeMillis() - startTime);
+        log.info("{} milliseconds has passed", System.currentTimeMillis() - startTime);
         return ResponseEntity.ok(result);
     }
 }
