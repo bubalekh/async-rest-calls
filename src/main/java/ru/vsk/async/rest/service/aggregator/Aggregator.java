@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+
 import java.util.function.Consumer;
 
 @Slf4j
@@ -21,6 +22,7 @@ public class Aggregator {
     private final ApiService thirdService;
 
     public List<String> aggregateData() {
+      
         List<String> result = new ArrayList<>();
 
         CompletableFuture<String> firstServiceData = CompletableFuture.supplyAsync(firstService::getData);
