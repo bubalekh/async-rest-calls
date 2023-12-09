@@ -42,6 +42,9 @@ public class Aggregator {
         integrationCall
                 .completeOnTimeout(null, timeout, TimeUnit.SECONDS)
                 .whenComplete((data, ex) -> {
+                    if (ex != null) {
+                        log.error("Exception occurred while async service call: {}", ex.getMessage());
+                    }
                     if (data != null)
                         resultList.accept(data);
                     else
