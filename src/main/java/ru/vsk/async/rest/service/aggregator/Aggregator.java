@@ -48,14 +48,14 @@ public class Aggregator {
         return result;
     }
 
-    private void asyncIntegrationCall(
-            Supplier<String> syncIntegrationCall,
-            Consumer<String> successCallback,
+    private <T> void asyncIntegrationCall(
+            Supplier<T> syncIntegrationCall,
+            Consumer<T> resultList,
             int timeout,
             Runnable timeoutCallback) {
-        CompletableFuture<String> responseCompletableFuture = CompletableFuture.supplyAsync(syncIntegrationCall);
+        CompletableFuture<T> responseCompletableFuture = CompletableFuture.supplyAsync(syncIntegrationCall);
         try {
-            successCallback.accept(responseCompletableFuture.get(timeout, TimeUnit.SECONDS));
+            resultList.accept(responseCompletableFuture.get(timeout, TimeUnit.SECONDS));
         } catch (ExecutionException | InterruptedException e) {
             throw new RuntimeException(e);
         } catch (TimeoutException timeoutException) {
