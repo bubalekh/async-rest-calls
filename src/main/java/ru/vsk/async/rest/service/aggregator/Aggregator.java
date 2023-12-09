@@ -9,8 +9,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 @Slf4j
 @Service
@@ -21,25 +21,25 @@ public class Aggregator {
     private final ApiService secondService;
     private final ApiService thirdService;
 
+    private final List<CompletableFuture> integrations = new ArrayList<>();
+
     public List<String> aggregateData() {
       
         List<String> result = new ArrayList<>();
 
-        CompletableFuture<String> firstServiceData = CompletableFuture.supplyAsync(firstService::getData);
-        CompletableFuture<String> thirdServiceData = CompletableFuture.supplyAsync(thirdService::getData);
-        CompletableFuture<String> secondServiceData = CompletableFuture.supplyAsync(secondService::getData);
+        asyncCallIntegration(firstService::getData, result::add, 3, () -> log.error("First service didn't respond in time"));
+        asyncCallIntegration(secondService::getData, result::add, 3, () -> log.error("Second service didn't respond in time"));
+        asyncCallIntegration(thirdService::getData, result::add, 6, () -> log.error("Third service didn't respond in time"));
 
-        asyncCallIntegration(firstServiceData, result::add, 3, () -> log.error("First service didn't respond in time"));
-        asyncCallIntegration(secondServiceData, result::add, 3, () -> log.error("Second service didn't respond in time"));
-        asyncCallIntegration(thirdServiceData, result::add, 6, () -> log.error("Third service didn't respond in time"));
-
-        CompletableFuture.allOf(firstServiceData, secondServiceData, thirdServiceData).join();
+        integrations.forEach(CompletableFuture::join);
 
         return result;
     }
 
-    private <T> void asyncCallIntegration(CompletableFuture<T> integrationCall, Consumer<T> resultList, int timeout, Runnable timeoutCallback) {
-        integrationCall
+    private <T> void asyncCallIntegration(Supplier<T> integrationCall, Consumer<T> resultList, int timeout, Runnable timeoutCallback) {
+        CompletableFuture<T> integrationCallData = CompletableFuture.supplyAsync(integrationCall);
+        integrations.add(integrationCallData);
+        integrationCallData
                 .completeOnTimeout(null, timeout, TimeUnit.SECONDS)
                 .whenComplete((data, ex) -> {
                     if (ex != null) {
