@@ -23,9 +23,9 @@ public class Aggregator {
     public List<String> aggregateData() {
         List<String> result = new ArrayList<>();
 
-        CompletableFuture<String> firstServiceData = firstService.getData();
-        CompletableFuture<String> thirdServiceData = thirdService.getData();
-        CompletableFuture<String> secondServiceData = secondService.getData();
+        CompletableFuture<String> firstServiceData = CompletableFuture.supplyAsync(firstService::getData);
+        CompletableFuture<String> thirdServiceData = CompletableFuture.supplyAsync(thirdService::getData);
+        CompletableFuture<String> secondServiceData = CompletableFuture.supplyAsync(secondService::getData);
 
         asyncCallIntegration(firstServiceData, result::add, 3, () -> log.error("First service didn't respond in time"));
         asyncCallIntegration(secondServiceData, result::add, 6, () -> log.error("Second service didn't respond in time"));
