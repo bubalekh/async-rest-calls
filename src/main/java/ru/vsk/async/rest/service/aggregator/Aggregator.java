@@ -4,14 +4,15 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.vsk.async.rest.service.ApiService;
-import ru.vsk.async.rest.service.first.FirstService;
-import ru.vsk.async.rest.service.second.SecondService;
-import ru.vsk.async.rest.service.third.ThirdService;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 @Slf4j
 @Service
@@ -22,31 +23,39 @@ public class Aggregator {
     private final ApiService secondService;
     private final ApiService thirdService;
 
-    public String aggregateData() {
-        StringBuilder stringBuffer = new StringBuilder();
+    public List<String> aggregateData() {
 
-        try {
-            stringBuffer.append(firstService.getData().get(3, TimeUnit.SECONDS)).append(", ");
-        } catch (InterruptedException | ExecutionException e) {
-            throw new RuntimeException(e);
-        } catch (TimeoutException e) {
-            log.error("first service didn't respond in time!");
-        }
-        try {
-            stringBuffer.append(secondService.getData().get(3, TimeUnit.SECONDS)).append(", ");
-        } catch (InterruptedException | ExecutionException e) {
-            throw new RuntimeException(e);
-        } catch (TimeoutException e) {
-            log.error("second service didn't respond in time!");
-        }
-        try {
-            stringBuffer.append(thirdService.getData().get(6, TimeUnit.SECONDS)).append(", ");
-        } catch (InterruptedException | ExecutionException e) {
-            throw new RuntimeException(e);
-        } catch (TimeoutException e) {
-            log.error("third service didn't respond in time!");
-        }
+        List<String> result = new ArrayList<>();
 
-        return stringBuffer.toString();
+        asyncIntegrationCall(
+                firstService::getData,
+                result::add,
+                3,
+                () -> log.error("first service didn't respond in time!"));
+
+        asyncIntegrationCall(
+                secondService::getData,
+                result::add,
+                3,
+                () -> log.error("second service didn't respond in time!"));
+
+        asyncIntegrationCall(
+                thirdService::getData,
+                result::add,
+                6,
+                () -> log.error("third service didn't respond in time!"));
+
+        return result;
+    }
+
+    private void asyncIntegrationCall(Supplier<String> syncIntegrationCall, Consumer<String> successCallback, int timeout, Runnable timeoutCallback) {
+        CompletableFuture<String> responseCompletableFuture = CompletableFuture.supplyAsync(syncIntegrationCall);
+        try {
+            successCallback.accept(responseCompletableFuture.get(timeout, TimeUnit.SECONDS));
+        } catch (ExecutionException | InterruptedException e) {
+            throw new RuntimeException(e);
+        } catch (TimeoutException timeoutException) {
+            timeoutCallback.run();
+        }
     }
 }

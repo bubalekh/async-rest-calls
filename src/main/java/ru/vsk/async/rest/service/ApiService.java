@@ -6,5 +6,5 @@ import java.util.concurrent.CompletableFuture;
 
 public interface ApiService {
 
-    CompletableFuture<String> getData();
+    String getData();
 }

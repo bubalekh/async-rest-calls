@@ -16,10 +16,9 @@ public class SecondService implements ApiService {
     private final RestTemplate restTemplate;
 
     @Override
-    @Async
-    public CompletableFuture<String> getData() {
+    public String getData() {
         String url = "http://localhost:8080/mock/second";
         ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
-        return CompletableFuture.completedFuture(response.getBody());
+        return response.getBody();
     }
 }
