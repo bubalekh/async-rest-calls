@@ -17,8 +17,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AggregatorController {
 
-    private final AggregatorService asyncAggregatorServiceImpl;
-    private final AggregatorService syncAggregatorServiceImpl;
+    private final AggregatorService<String> asyncAggregatorServiceImpl;
+    private final AggregatorService<String> syncAggregatorServiceImpl;
 
     @GetMapping("/async")
     public ResponseEntity<List<String>> getDataAsync() {
@@ -30,7 +30,7 @@ public class AggregatorController {
         return ResponseEntity.ok(invokeGetData(syncAggregatorServiceImpl));
     }
 
-    private List<String> invokeGetData(AggregatorService aggregatorService) {
+    private List<String> invokeGetData(AggregatorService<String> aggregatorService) {
         long startTime = System.nanoTime();
         List<String> result = aggregatorService.aggregateData();
         log.info("{} milliseconds has passed", System.nanoTime() - startTime);

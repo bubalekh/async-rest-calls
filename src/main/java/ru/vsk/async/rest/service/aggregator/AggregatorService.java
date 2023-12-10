@@ -2,10 +2,7 @@ package ru.vsk.async.rest.service.aggregator;
 
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -22,6 +19,35 @@ public abstract class AggregatorService<T> {
         return result;
     }
 
+    /**
+     * Executes all async calls performed through asyncIntegrationCall method.
+     * You should place all your sync calls into this method one by one. Example:
+     * <pre class="code">
+     *     asyncCallIntegration(
+     *         integrations,
+     *         firstService::getData,
+     *         result::add,
+     *         3,
+     *         () -> log.error("First service didn't respond in time")
+     *     );
+     *     asyncCallIntegration(
+     *         integrations,
+     *         firstService::getData,
+     *         result::add,
+     *         3,
+     *         () -> log.error("Second service didn't respond in time")
+     *     );
+     *     asyncCallIntegration(
+     *         integrations,
+     *         thirdService::getData,
+     *         result::add,
+     *         6,
+     *         () -> log.error("Third service didn't respond in time")
+     *     );
+     * </pre>
+     * @param integrations the list of all operated tasks method must wait for completion
+     * @param result the list tu put result of all operated tasks
+     */
     public abstract void fetchData(Queue<CompletableFuture<T>> integrations, List<T> result);
 
     protected void asyncCallIntegration(Queue<CompletableFuture<T>> integrations, Supplier<T> integrationCall, Consumer<T> resultList, int timeout, Runnable timeoutCallback) {

@@ -6,11 +6,13 @@ import org.springframework.stereotype.Service;
 import ru.vsk.async.rest.service.ApiService;
 
 import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class SyncAggregatorServiceImpl implements AggregatorService {
+public class SyncAggregatorServiceImpl extends AggregatorService<String> {
 
     private final ApiService firstService;
     private final ApiService secondService;
@@ -24,4 +26,7 @@ public class SyncAggregatorServiceImpl implements AggregatorService {
                 thirdService.getData()
         );
     }
+
+    @Override
+    public void fetchData(Queue<CompletableFuture<String>> integrations, List<String> result) {}
 }
