@@ -1,15 +1,21 @@
 package ru.vsk.async.rest.service.aggregator;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 @Slf4j
+@RequiredArgsConstructor
 public abstract class AggregatorService<T> {
+
+    private final Executor executor;
+
     public List<T> aggregateData() {
         Queue<CompletableFuture<T>> integrations = new LinkedList<>();
         List<T> result = new ArrayList<>();
@@ -51,7 +57,7 @@ public abstract class AggregatorService<T> {
     public abstract void fetchData(Queue<CompletableFuture<T>> integrations, List<T> result);
 
     protected void asyncCallIntegration(Queue<CompletableFuture<T>> integrations, Supplier<T> integrationCall, Consumer<T> resultList, int timeout, Runnable timeoutCallback) {
-        CompletableFuture<T> integrationCallData = CompletableFuture.supplyAsync(integrationCall);
+        CompletableFuture<T> integrationCallData = CompletableFuture.supplyAsync(integrationCall, executor);
         integrations.add(integrationCallData);
         integrationCallData
                 .completeOnTimeout(null, timeout, TimeUnit.SECONDS)
