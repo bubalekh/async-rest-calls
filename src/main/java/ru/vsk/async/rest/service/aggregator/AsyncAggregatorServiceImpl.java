@@ -29,6 +29,5 @@ public class AsyncAggregatorServiceImpl extends AggregatorService<String> {
         asyncCallIntegration(integrations, firstService::getData, result::add, 3, () -> log.error("First service didn't respond in time"));
         asyncCallIntegration(integrations, secondService::getData, result::add, 3, () -> log.error("Second service didn't respond in time"));
         asyncCallIntegration(integrations, thirdService::getData, result::add, 6, () -> log.error("Third service didn't respond in time"));
-        CompletableFuture.allOf().join();
     }
 }
